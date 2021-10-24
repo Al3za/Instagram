@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html>
+    <head>
+
+    </head>
+    <body>
+        <div id="imageContainer">
+
+        </div>
+        <script>
+            
+            const imageContainer = document.getElementById("imageContainer")
+            const imageAPIURL = "https://mock-data-api.firebaseio.com/images.json"
+
+            function getImageData() {
+                /* Hämtar data från API:t */
+                imageContainer.innerHTML = ""
+                fetch(imageAPIURL)
+                .then(res => res.json())
+                .then(data => {
+                    renderImageList(data)
+                })
+            }
+
+            function renderImageList(data) {
+                /* Renderar Listan med bilder */
+                data.forEach(imageItem => {
+                    renderImageItem(imageItem)
+                })
+            }
+
+            function renderImageItem(imageItem) {
+                /* Renderar en bild */
+                /*
+                <div>
+                    <img> -> imageURL
+                    <h1> -> title
+                    <p> -> description
+                </div>
+                */
+                const wrapper = document.createElement("div")
+                wrapper.appendChild(createImage(imageItem))
+                wrapper.appendChild(createHeading(imageItem))
+                wrapper.appendChild(createParagraph(imageItem))
+                
+                wrapper.appendChild(createCommentList(imageItem))
+
+                wrapper.appendChild(createCommentForm(imageItem))
+                
+                imageContainer.appendChild(wrapper)
+            //console.log(imageContainer)
+            }
+            
+
+            function createImage(imageItem) {
+                const img = document.createElement("img")
+                img.style.width = "50%"
+                img.src = imageItem.imageURL
+                img.alt = imageItem.title
+                return img
+            }
+
+            function createHeading(imageItem) {
+                const h1 = document.createElement("h1")
+                h1.innerText = imageItem.title
+                return h1
+            }
+
+            function createParagraph(imageItem) {
+                const p = document.createElement("p")
+                p.innerText = imageItem.description
+                return p
+            }
+
+            function createCommentList(imageItem) {
+                const commentWrapper = document.createElement('div')
+                const id = imageItem.id
+                /* https://mock-data-api.firebaseio.com/image-comments/{id}.json */
+                const commentURL = `https://mock-data-api.firebaseio.com/image-comments/${id}.json`
+                //console.log(commentURL)
+                fetch(commentURL)
+                .then(res => res.json())
+                .then(data => {
+                  //  console.log(data)
+                   renderCommentList(data, commentWrapper)
+                })
+                return commentWrapper
+            } 
+            function renderCommentList(data, commentWrapper) {
+                if(data) {
+                    Object.entries(data).forEach(commentItem => {
+                      //  console.log(commentItem)
+                        renderCommentItem(commentItem[1], commentWrapper)
+                    })
+                }
+            }
+
+            function renderCommentItem(commentItem, commentWrapper) {
+                const comment = document.createElement('p')
+                comment.innerText = commentItem.message
+                commentWrapper.appendChild(comment)
+            }
+
+            function createCommentForm(imageItem) {
+                const wrapper = document.createElement('div')
+                const input = document.createElement('input')
+                const button = document.createElement('button')
+                button.innerText = 'Send Comment'
+                
+                button.addEventListener("click", function() {
+                    const value = input.value
+                    const id = imageItem.id
+                    const commentURL = `https://mock-data-api.firebaseio.com/image-comments/${id}.json`
+                   // console.log(commentURL)
+                    const payload = {
+                        message: value
+                    }
+                    fetch(commentURL, {
+                        method: "POST",
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify(payload)
+                    })
+                    .then(res => {
+                        // getImageData()
+                    })
+                })
+
+                wrapper.appendChild(input)
+                wrapper.appendChild(button)
+                return wrapper
+
+            }
+
+            getImageData()
+        </script>
+    </body>
+</html>
